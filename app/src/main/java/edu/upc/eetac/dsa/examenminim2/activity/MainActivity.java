@@ -1,5 +1,6 @@
 package edu.upc.eetac.dsa.examenminim2.activity;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private Button login;
     private String usu, pass;
     private static final String TAG = MainActivity.class.getSimpleName();
-    public static final String BASE_URL = "?????????";
+    public static final String BASE_URL = "http://localhost:8088/examen/json/";
     private static Retrofit retrofit = null;
     private boolean resposta;
 
@@ -46,21 +47,36 @@ public class MainActivity extends AppCompatActivity {
                 else {
                     usu = usuario.getText().toString();
                     pass = password.getText().toString();
-                    connectApiService();
-                    //Intent in = new Intent(MainActivity.this, Main2Activity.class);
-                    //startActivity(in);
+                    if(!connectApiService()){
+                        Intent in = new Intent(MainActivity.this, Main2Activity.class);
+                        in.putExtra("cose",false);
+                        startActivity(in);
+                    }
+
                 }
             }
         });
 
     }
 
-    public void connectApiService() {
-        if (this.retrofit == null) {
-            this.retrofit = new Retrofit.Builder()
-                    .baseUrl(BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
+    public Boolean connectApiService() {
+        Boolean funciona = false;
+        final ProgressDialog progress = new ProgressDialog(this);
+        progress.setMessage("Carregant...");
+        progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progress.show();
+        try {
+            if (this.retrofit == null) {
+                this.retrofit = new Retrofit.Builder()
+                        .baseUrl(BASE_URL)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            progress.dismiss();
+            return funciona;
+
         }
         Rest service = retrofit.create(Rest.class);
 
@@ -69,11 +85,12 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call<Boolean> call, Response<Boolean> response) {
                     resposta = response.body().booleanValue();
-
-                    if(resposta)
+                    progress.dismiss();
+                    if(!resposta)
                         Toast.makeText(getApplicationContext(), "Usuari no trobat", Toast.LENGTH_LONG).show();
                     else{
                         Intent in = new Intent(MainActivity.this, Main2Activity.class);
+                        in.putExtra("cose",true);
                         startActivity(in);
                     }
 
@@ -85,7 +102,8 @@ public class MainActivity extends AppCompatActivity {
                 }
 
         });
-
+        progress.dismiss();
+        return funciona;
     }
 
 

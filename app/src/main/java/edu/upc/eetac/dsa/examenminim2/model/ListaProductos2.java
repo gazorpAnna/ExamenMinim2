@@ -8,7 +8,7 @@ import java.util.List;
  * Created by annag on 18/12/2017.
  */
 
-public class ListaProductos {
+public class ListaProductos2 {
 
     @SerializedName("results")
     private List<Producto> listaProductos;
